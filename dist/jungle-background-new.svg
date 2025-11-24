@@ -1,0 +1,81 @@
+<svg width="1200" height="800" viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background gradient -->
+  <defs>
+    <radialGradient id="bgGradient" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#f0f4e8;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e8f5e8;stop-opacity:1" />
+    </radialGradient>
+  </defs>
+  
+  <!-- Main background -->
+  <rect width="1200" height="800" fill="url(#bgGradient)"/>
+  
+  <!-- Top left foliage -->
+  <g transform="translate(0,0)">
+    <!-- Large leaf -->
+    <path d="M0,0 Q50,20 80,60 Q60,100 20,120 Q-10,80 0,0" fill="#2d5016"/>
+    <path d="M20,40 Q60,50 90,80 Q70,110 40,120 Q10,90 20,40" fill="#4a7c59"/>
+    <path d="M40,20 Q80,30 110,60 Q90,90 60,100 Q30,70 40,20" fill="#2d5016"/>
+  </g>
+  
+  <!-- Top right foliage -->
+  <g transform="translate(1120,0) scale(-1,1)">
+    <path d="M0,0 Q50,20 80,60 Q60,100 20,120 Q-10,80 0,0" fill="#2d5016"/>
+    <path d="M20,40 Q60,50 90,80 Q70,110 40,120 Q10,90 20,40" fill="#4a7c59"/>
+    <path d="M40,20 Q80,30 110,60 Q90,90 60,100 Q30,70 40,20" fill="#2d5016"/>
+  </g>
+  
+  <!-- Left side foliage -->
+  <g transform="translate(0,200)">
+    <path d="M0,50 Q30,70 50,120 Q40,160 10,180 Q-20,140 0,50" fill="#4a7c59"/>
+    <path d="M20,80 Q50,100 70,150 Q60,190 30,210 Q0,170 20,80" fill="#2d5016"/>
+  </g>
+  
+  <!-- Right side foliage -->
+  <g transform="translate(1200,200) scale(-1,1)">
+    <path d="M0,50 Q30,70 50,120 Q40,160 10,180 Q-20,140 0,50" fill="#4a7c59"/>
+    <path d="M20,80 Q50,100 70,150 Q60,190 30,210 Q0,170 20,80" fill="#2d5016"/>
+  </g>
+  
+  <!-- Bottom foliage -->
+  <g transform="translate(0,600)">
+    <!-- Left bottom leaves -->
+    <path d="M0,100 Q40,120 80,160 Q60,200 20,220 Q-20,180 0,100" fill="#4a7c59"/>
+    <path d="M40,120 Q80,140 120,180 Q100,220 60,240 Q20,200 40,120" fill="#2d5016"/>
+    <path d="M80,140 Q120,160 160,200 Q140,240 100,260 Q60,220 80,140" fill="#4a7c59"/>
+    
+    <!-- Center bottom yellow accent -->
+    <ellipse cx="600" cy="180" rx="60" ry="30" fill="#f4d03f"/>
+    <path d="M540,180 Q580,160 620,180 Q580,200 540,180" fill="#f7dc6f"/>
+  </g>
+  
+  <!-- Right bottom foliage -->
+  <g transform="translate(1200,600) scale(-1,1)">
+    <path d="M0,100 Q40,120 80,160 Q60,200 20,220 Q-20,180 0,100" fill="#4a7c59"/>
+    <path d="M40,120 Q80,140 120,180 Q100,220 60,240 Q20,200 40,120" fill="#2d5016"/>
+    <path d="M80,140 Q120,160 160,200 Q140,240 100,260 Q60,220 80,140" fill="#4a7c59"/>
+  </g>
+  
+  <!-- Cute clouds -->
+  <!-- Left cloud -->
+  <g transform="translate(150,80)">
+    <ellipse cx="0" cy="0" rx="40" ry="25" fill="white"/>
+    <ellipse cx="25" cy="-5" rx="30" ry="20" fill="white"/>
+    <ellipse cx="-20" cy="-3" rx="25" ry="18" fill="white"/>
+    <!-- Face -->
+    <circle cx="-8" cy="-3" r="3" fill="#ff6b9d"/>
+    <circle cx="8" cy="-3" r="3" fill="#ff6b9d"/>
+    <path d="M-5,5 Q0,10 5,5" stroke="#ff6b9d" stroke-width="2" fill="none"/>
+  </g>
+  
+  <!-- Right cloud -->
+  <g transform="translate(1050,80)">
+    <ellipse cx="0" cy="0" rx="40" ry="25" fill="white"/>
+    <ellipse cx="25" cy="-5" rx="30" ry="20" fill="white"/>
+    <ellipse cx="-20" cy="-3" rx="25" ry="18" fill="white"/>
+    <!-- Face -->
+    <circle cx="-8" cy="-3" r="3" fill="#ff6b9d"/>
+    <circle cx="8" cy="-3" r="3" fill="#ff6b9d"/>
+    <path d="M-5,5 Q0,10 5,5" stroke="#ff6b9d" stroke-width="2" fill="none"/>
+  </g>
+</svg>
