@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import confetti from "canvas-confetti"
-import { Pause, Play, RotateCcw, Music, VolumeX, SkipForward, HelpCircle, X } from "lucide-react"
+import { Pause, Play, RotateCcw, Music, VolumeX, HelpCircle, X } from "lucide-react"
 import { gameConfig } from "../config/game-config"
 
 type Player = "left" | "right"
@@ -118,7 +118,8 @@ export default function PoolAdditionGame() {
 
   const startRound = () => {
     if (gameOver) return
-    const count = scale < 0.55 ? randInt(5, 7) : randInt(6, 9)
+    setActivePlayer("left")
+    const count = 8
     // Generate positions that avoid overlapping the central lifebuoy
     const generatePositionsSafe = (c: number) => {
       const positions: { x: number; y: number }[] = []
@@ -126,15 +127,11 @@ export default function PoolAdditionGame() {
       const ballPx = clampNum(Math.round(56 * scale), 30, 84)
       const lifePx = clampNum(Math.round(150 * scale), 120, 200)
       const marginPx = Math.round(28 * scale)
-      // Extra margin to keep balls away from pool's white walls/edges
       const extraEdgePx = Math.round(24 * scale)
       const safeFactor = scale < 0.55 ? 1.35 : 1.18
       const rx = (((lifePx / 2) * safeFactor) + (ballPx / 2) + marginPx) / wrapWidthPx * 100
       const ry = (((lifePx / 2) * safeFactor) + (ballPx / 2) + marginPx) / poolHeightPx * 100
-      const rxBall = (ballPx / 2) / wrapWidthPx * 100
-      const ryBall = (ballPx / 2) / poolHeightPx * 100
 
-      // compute exclusion bands near left/right edges where octopuses overlap the pool
       const leftOffsetPx = clampNum(Math.round(wrapWidthPx * 0.09), 12, 72)
       const rightOffsetPx = clampNum(Math.round(wrapWidthPx * 0.09), 12, 72)
       const leftOctoWidthPx = clampNum(Math.round(wrapWidthPx * 0.20), 80, 140)
@@ -143,23 +140,19 @@ export default function PoolAdditionGame() {
       const rightOverlapPx = Math.max(0, rightOctoWidthPx - rightOffsetPx)
       let leftBandPercent = (leftOverlapPx / wrapWidthPx) * 100
       let rightBandPercent = (rightOverlapPx / wrapWidthPx) * 100
-      // soften bands slightly to avoid overly shrinking the play area
       leftBandPercent = Math.max(0, leftBandPercent * 0.9)
       rightBandPercent = Math.max(0, rightBandPercent * 0.9)
       let minXPercent = 8 + leftBandPercent
       let maxXPercent = 92 - rightBandPercent
       if (maxXPercent - minXPercent < 20) {
-        // relax bands if the area gets too narrow
         minXPercent = 8 + leftBandPercent * 0.5
         maxXPercent = 92 - rightBandPercent * 0.5
       }
       if (maxXPercent - minXPercent < 14) {
-        // final fallback to defaults
         minXPercent = 8
         maxXPercent = 92
       }
 
-      // Apply wall margins so balls don't sit on the pool's white walls
       const wallMarginXPercent = (((ballPx / 2) + marginPx + extraEdgePx) / wrapWidthPx) * 100
       const wallMarginYPercent = (((ballPx / 2) + marginPx + extraEdgePx) / poolHeightPx) * 100
       minXPercent = Math.max(minXPercent, wallMarginXPercent)
@@ -167,12 +160,10 @@ export default function PoolAdditionGame() {
       let minYPercent = Math.max(12, wallMarginYPercent)
       let maxYPercent = Math.min(88, 100 - wallMarginYPercent)
       if (maxYPercent - minYPercent < 20) {
-        // soften Y margins slightly if area gets tight
         minYPercent = Math.max(10, minYPercent * 0.8)
         maxYPercent = Math.min(90, 100 - ((100 - maxYPercent) * 0.8))
       }
       if (maxYPercent - minYPercent < 14) {
-        // final fallback to defaults
         minYPercent = 12
         maxYPercent = 88
       }
@@ -182,59 +173,51 @@ export default function PoolAdditionGame() {
         const dy = (yy - 50) / ry
         return (dx * dx + dy * dy) <= 1
       }
-      const okApartFrom = (xx: number, yy: number, sep: number) =>
-        positions.every((p) => {
-          const ddx = (p.x - xx) / rxBall
-          const ddy = (p.y - yy) / ryBall
-          const dUnits = Math.sqrt(ddx * ddx + ddy * ddy)
-          return dUnits > sep
-        })
 
-      for (let i = 0; i < c; i++) {
-        let x = 50
-        let y = 50
-        let tries = 0
-        let sepUnits = 2.6 // >2 means no touch; add margin
-        let found = false
-        while (tries < 700) {
-          x = randInt(Math.ceil(minXPercent), Math.floor(maxXPercent))
-          y = randInt(Math.ceil(minYPercent), Math.floor(maxYPercent))
-          tries++
-          if (!insideCenter(x, y) && okApartFrom(x, y, sepUnits)) {
-            found = true
-            break
+      const cols = 4
+      const rows = Math.ceil(c / cols)
+      const colStep = (maxXPercent - minXPercent) / cols
+      const rowStep = (maxYPercent - minYPercent) / rows
+      const layout = randInt(0, 2)
+      let placed = 0
+      for (let r = 0; r < rows && placed < c; r++) {
+        for (let col = 0; col < cols && placed < c; col++) {
+          let x = minXPercent + colStep * (col + 0.5)
+          let y = minYPercent + rowStep * (r + 0.5)
+          if (layout === 1) {
+            x += colStep * 0.25 * (r % 2 === 0 ? 1 : -1)
+          } else if (layout === 2) {
+            y += rowStep * 0.15 * (col % 2 === 0 ? 1 : -1)
           }
-          // if it's hard to place, slightly relax spacing after many tries
-          if (tries % 120 === 0) {
-            sepUnits = Math.max(2.2, sepUnits * 0.94)
-          }
-        }
-        if (!found) {
-          const anchors = [
-            { x: Math.min(90, Math.max(minXPercent + 8, 16)), y: Math.min(90, Math.max(minYPercent + 4, 16)) },
-            { x: Math.max(10, Math.min(maxXPercent - 8, 84)), y: Math.min(90, Math.max(minYPercent + 4, 16)) },
-            { x: Math.min(90, Math.max(minXPercent + 8, 16)), y: Math.max(10, Math.min(maxYPercent - 4, 84)) },
-            { x: Math.max(10, Math.min(maxXPercent - 8, 84)), y: Math.max(10, Math.min(maxYPercent - 4, 84)) },
-            { x: Math.min(90, Math.max(minXPercent + 10, 18)), y: 50 },
-            { x: Math.max(10, Math.min(maxXPercent - 10, 82)), y: 50 },
-            { x: 50, y: Math.min(90, Math.max(minYPercent + 4, 16)) },
-            { x: 50, y: Math.max(10, Math.min(maxYPercent - 4, 84)) },
-          ]
-          for (const a of anchors) {
-            if (!insideCenter(a.x, a.y) && okApartFrom(a.x, a.y, 2.3)) {
-              x = a.x
-              y = a.y
-              found = true
-              break
+          const jx = randInt(Math.round(-colStep * 0.22), Math.round(colStep * 0.22))
+          const jy = randInt(Math.round(-rowStep * 0.22), Math.round(rowStep * 0.22))
+          x = Math.min(maxXPercent, Math.max(minXPercent, x + jx))
+          y = Math.min(maxYPercent, Math.max(minYPercent, y + jy))
+          if (insideCenter(x, y)) {
+            y = Math.min(maxYPercent, Math.max(minYPercent, y + (r === 0 ? -rowStep * 0.5 : rowStep * 0.5)))
+            if (insideCenter(x, y)) {
+              x = Math.min(maxXPercent, Math.max(minXPercent, x + (col === 0 ? -colStep * 0.5 : colStep * 0.5)))
             }
           }
+          positions.push({ x, y })
+          placed++
         }
-        positions.push({ x, y })
       }
       return positions
     }
     const positions = generatePositionsSafe(count)
-    const values = Array.from({ length: count }, () => randInt(1, 9))
+    let values = Array.from({ length: count }, () => randInt(1, 9))
+    let hasHighPair = false
+    for (let a = 0; a < count; a++) {
+      for (let b = a + 1; b < count; b++) {
+        if (values[a] + values[b] >= 10) { hasHighPair = true; break }
+      }
+      if (hasHighPair) break
+    }
+    if (!hasHighPair && count >= 2) {
+      values[0] = 5
+      values[1] = 5
+    }
     const nextBalls: Ball[] = positions.map((p, i) => ({
       id: i + 1,
       value: values[i],
@@ -242,16 +225,17 @@ export default function PoolAdditionGame() {
       y: p.y,
       selected: false,
     }))
-    // Ensure the target is the sum of TWO balls (pair-sum guaranteed)
-    let i1 = randInt(0, count - 1)
-    let i2 = randInt(0, count - 1)
-    while (i2 === i1) {
-      i2 = randInt(0, count - 1)
+    const candidates: { a: number; b: number; sum: number }[] = []
+    for (let a = 0; a < count; a++) {
+      for (let b = a + 1; b < count; b++) {
+        const s = nextBalls[a].value + nextBalls[b].value
+        if (s >= 10) candidates.push({ a, b, sum: s })
+      }
     }
-    const t = nextBalls[i1].value + nextBalls[i2].value
-    const pairIds = [nextBalls[i1].id, nextBalls[i2].id]
+    let chosen = candidates.length ? candidates[randInt(0, candidates.length - 1)] : { a: 0, b: Math.min(1, count - 1), sum: nextBalls[0].value + nextBalls[Math.min(1, count - 1)].value }
+    const pairIds = [nextBalls[chosen.a].id, nextBalls[chosen.b].id]
     setBalls(nextBalls)
-    setTarget(t)
+    setTarget(chosen.sum)
     setCorrectPair(pairIds)
     setMessage("")
     setIsPaused(false)
@@ -264,7 +248,7 @@ export default function PoolAdditionGame() {
     }
     roundTimerRef.current = window.setTimeout(() => {
       if (gameOver || isPaused) return
-      const ok = selectedCountRef.current === 2 && selectedSumRef.current === t && activePlayerRef.current === "left"
+      const ok = selectedCountRef.current === 2 && selectedSumRef.current === chosen.sum && activePlayerRef.current === "left"
       if (!ok) {
         setActivePlayer("right")
         const b1 = nextBalls.find((bb) => bb.id === pairIds[0])
@@ -401,9 +385,7 @@ export default function PoolAdditionGame() {
     startRound()
   }
 
-  const skipRound = () => {
-    startRound()
-  }
+  
 
   const openHelp = () => {
     setShowHelp(true)
@@ -574,13 +556,7 @@ export default function PoolAdditionGame() {
               >
                 <RotateCcw className="w-5 h-5 sm:w-6 sm:h-6 lg:w-10 lg:h-10 text-white" />
               </button>
-              <button
-                onClick={skipRound}
-                className="w-10 h-10 sm:w-12 sm:h-12 lg:w-16 lg:h-16 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-colors shadow-lg"
-                aria-label="Skip round"
-              >
-                <SkipForward className="w-5 h-5 sm:w-6 sm:h-6 lg:w-10 lg:h-10 text-white" />
-              </button>
+              
             </>
           )}
         </div>
